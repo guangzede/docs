@@ -1,0 +1,15 @@
+.container {
+    width: 1300px!important;
+    margin: 0 auto;
+    &:after {
+      content: "";
+      display: block;
+      clear: both;
+    }
+  }
+  
+.clearfix:after {
+  content: "";
+  display: block;
+  clear: both;
+}
