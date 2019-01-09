@@ -8,14 +8,13 @@
           <div v-for="(nav, index) of headings" :key="index" :class="nav.isOpen ? 'open':'' "  class="item">
             <h2 :key="nav.index"  @click="closeOpen(nav)" >{{nav.title}} </h2>
             <template v-if="nav.children.length > 0">
-              <h3 :key="item.index" v-for="item of nav.children"  @click="showRealContent(item, nav)">{{item.title}}</h3>
-              <!-- <b v-for="(items ,indexs) of item.children" :key="indexs+666">{{items.title}}</b> -->
+              <h3 :key="item.index" v-for="item of nav.children" class="jump"  @click="showRealContent(item)" >{{item.title}}</h3>
             </template>
           </div>
         </div>
       </GeminiScrollbar>
     </div>
-    <div v-html="compiledMarkdown" class="content"></div>
+    <div v-html="compiledMarkdown" class="content" ref="content" id="cont"></div>
   </div>
 </template>
 
@@ -46,7 +45,7 @@ export default {
     return {
       input: '',
       headings: [],
-      subtitle: this.input,
+      subtitle: Object(),
       isOpen: [],
       paragraph: false
     }
@@ -60,15 +59,13 @@ export default {
       return `<h${Slevel} class="h${Slevel}">${Stext.trim()}</h${Slevel}>`
     }
     renderMD.paragraph = (text) => {
-      // console.log(text)
       return `<p>${text}</p>`
     }
   },
   created () {
-    global.headings = this.headings
   },
   methods: {
-    getMarkdown (url = './static/test.md') {
+    getMarkdown (url = './static/doc/doc.md') {
       axios.get(url).then(this.setValue)
     },
     setValue (res) {
@@ -77,13 +74,20 @@ export default {
       global.data = res.data
       this.getTitle(res.data)
     },
-    getConetnt (index) {
-
+    getConetnt (content, current, next) {
+      var reg = new RegExp('(' + current + ')((\n|\r).*)*(' + next + ')', 'gm')
+      var title = content.match(reg)[0]
+      title = title.split(current)[1].trim()
+      title = title.split(next)[0].trim()
+      return title
     },
     getTitle (content) {
       let nav = []
       let navLevel = [2, 3, 4]
       let tempArr = []
+      var _this = this
+      var _match = ''
+      var paragraph = ''
       content.replace(/```/g, function (match) {
         return '\f'
       })
@@ -93,20 +97,25 @@ export default {
         .replace(/\r|\n+/g, function (match) {
           return '\n'
         })
-        .replace(/(##+)[^#][^\n]*?(?:\n)/g, function (match, m1) {
+        .replace(/(##+)[^#\n.]*?(?:\n|\s|\t|\r).*(###)?$/gm, function (match, m1) {
+        // let paragraph = content.match(reg)
           let title = match.replace('\n', '')
+          if (_match !== '') {
+            paragraph = _this.getConetnt(content, _match, match)
+          } else {
+            paragraph = ''
+          }
+          _match = match
           let level = m1.length
           tempArr.push({
-            title: title = title.replace(/^#+\s/, '').replace(/\([^)]*?\)/, ''),
-            level: level,
+            title: title = title.replace(/^#+\s/, ''),
+            level,
+            paragraph,
             'isOpen': false,
             children: []
           })
         })
       nav = tempArr.filter(_ => _.level <= 4)
-      for (let i in tempArr) {
-        console.log(tempArr[i].content)
-      }
       let index = 0
       nav = nav.map(_ => {
         _.index = index++
@@ -175,11 +184,10 @@ export default {
       return ret
     },
     showRealContent (current, nav) {
-      console.log(nav)
+      this.subtitle = current
       console.log(current)
     },
     logthis (sth) {
-      console.table(sth)
     },
     closeOpen (status) {
       status.isOpen = !status.isOpen

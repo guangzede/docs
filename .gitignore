@@ -12,3 +12,4 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
+git config –global user.name "guangzede"    git config –global user.email "530070136@qq.com"

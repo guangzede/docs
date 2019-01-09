@@ -1,10 +1,8 @@
 <template>
-  <div class="sidemenu">
-    <div
-      class="item"
-      v-for="(item ,index) in subtitle"
-      :key="index+999"
-    >{{item.title}}</div>
+  <div class="sidemenu" v-if="subtitle.children">
+    <template v-for="(item, index) in subtitle.children" >
+      <div class="item" @click="handleHighlight(item)" :key="index+999">{{item.title}}</div>
+    </template>
   </div>
 </template>
 
@@ -12,7 +10,21 @@
 export default {
   name: 'sideMenu',
   props: {
-    subtitle: Array
+    subtitle: Object
+  },
+  mounted() {
+    this.$nextTick(function() {
+      window.addEventListener('scroll', this.onScroll);
+    })
+  },
+  methods: {
+    handleHighlight(item) {
+      console.log(item.index)
+      debugger
+    },
+    onScroll() {
+      
+    }
   }
 }
 </script>
