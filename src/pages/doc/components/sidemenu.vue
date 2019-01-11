@@ -71,7 +71,6 @@ export default {
         }
         location.hash = '/doc'
       }
-      
     }
   }
 }
