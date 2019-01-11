@@ -69,17 +69,18 @@ export default {
       axios.get(url).then(this.setValue)
     },
     setValue (res) {
-      res.data.replace()
       this.input = res.data
       global.data = res.data
       this.getTitle(res.data)
     },
-    getConetnt (content, current, next) {
-      var reg = new RegExp('(' + current + ')((\n|\r).*)*(' + next + ')', 'gm')
-      var title = content.match(reg)[0]
-      title = title.split(current)[1].trim()
-      title = title.split(next)[0].trim()
-      return title
+    getConetnt (string, current) {
+      // (### 介绍).*((\r|\n).*)*(#{1,9}\s[\u4e00-\u9fa5])
+      var reg = new RegExp('(' + current + ').*((\\n|\\r).*)*', 'gm')
+      var content = string.match(reg)[0]
+      content = content.split(current)[1]
+      content = content.split(/#{1,9}\s.*/)[0]
+      // content = content.split(next)[0]
+      return content
     },
     getTitle (content) {
       let nav = []
@@ -101,9 +102,8 @@ export default {
         // let paragraph = content.match(reg)
           let title = match.replace('\n', '')
           if (_match !== '') {
-            paragraph = _this.getConetnt(content, _match, match)
-          } else {
-            paragraph = ''
+            // paragraph =
+            paragraph = _this.getConetnt(content, match)
           }
           _match = match
           let level = m1.length
@@ -190,7 +190,33 @@ export default {
     logthis (sth) {
     },
     closeOpen (status) {
+      console.table(status)
+      let a = ''
+      if (status.children.length > 0) {
+        for (var i of status.children) {
+          a += '<h' + i.level + ' id=' + i.index + '>' + i.title + '</h' + i.level + '>'
+          a += i.paragraph
+          if (i.hasOwnProperty('children') && i.children.length > 0) {
+            a += this.copy(i)
+          }
+        }
+      } else {
+        a += '<h' + status.level + ' id=' + i.index + '>' + status.title + '</h' + status.level + '>'
+        a += status.paragraph
+      }
+      this.input = a
       status.isOpen = !status.isOpen
+    },
+    copy (obj) {
+      let string = ''
+      for (var i of obj.children) {
+        string += '<h' + i.level + ' id=' + i.index + '>' + i.title + '</h' + i.level + '>'
+        string += i.paragraph
+        if (i.hasOwnProperty('children') && i.children.length > 0) {
+          string += this.copy(i)
+        }
+      }
+      return string
     }
   },
   computed: {
